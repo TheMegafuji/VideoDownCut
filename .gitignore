@@ -57,5 +57,3 @@ yarn-error.log*
 !*.d.ts
 !src/**/*.ts
 !next-intl.config.ts
-
-package-lock.json
