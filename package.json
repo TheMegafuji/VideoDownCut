@@ -1,0 +1,48 @@
+{
+  "name": "videodowncut",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev -p 3787",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css}\"",
+    "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css}\""
+  },
+  "keywords": [
+    "video",
+    "download",
+    "editor",
+    "cutting",
+    "converter",
+    "nextjs",
+    "ffmpeg",
+    "yt-dlp"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "autoprefixer": "^10.4.15",
+    "fluent-ffmpeg": "^2.1.2",
+    "next": "^14.1.0",
+    "next-intl": "^4.1.0",
+    "postcss": "^8.4.31",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwindcss": "^3.3.3",
+    "yt-dlp-wrap": "^2.3.12"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "@types/react": "^18.2.48",
+    "@types/react-dom": "^18.2.18",
+    "eslint": "^8.56.0",
+    "eslint-config-next": "^14.1.0",
+    "eslint-config-prettier": "^9.1.0",
+    "postcss-import": "^16.1.0",
+    "prettier": "^3.2.4",
+    "typescript": "^5.3.3"
+  },
+  "description": "Plataforma web elegante para download, edição e conversão de vídeos de qualquer site. Suporta múltiplas plataformas de vídeo com interface intuitiva de timeline para edição precisa."
+}

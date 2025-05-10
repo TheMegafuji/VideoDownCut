@@ -1,0 +1,33 @@
+# Compilados
+.next/
+build/
+out/
+
+# Dependências
+node_modules/
+
+# Variáveis de ambiente
+.env*
+!.env.example
+
+# Diretórios de cache
+.cache/
+
+# Diretórios de uploads
+uploads/
+temp/
+
+# Metadados
+*.log
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Arquivos de configuração gerados automaticamente
+next-env.d.ts
+
+# Outros
+.vercel
+*.md
+package-lock.json 
