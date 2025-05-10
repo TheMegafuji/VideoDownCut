@@ -62,7 +62,7 @@ export default async function RootLayout({
                   <ul className="flex space-x-4">
                     <li>
                       <a
-                        href="https://github.com/TheMegafuji"
+                        href="https://github.com/TheMegafuji/VideoDownCut"
                         className="text-gray-600 hover:text-gray-900"
                       >
                         GitHub
