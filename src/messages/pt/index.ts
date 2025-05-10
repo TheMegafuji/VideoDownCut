@@ -7,6 +7,8 @@ export default {
     processing: 'Processando...',
     error: 'Ocorreu um erro',
     success: 'Sucesso',
+    retry: 'Tentar Novamente',
+    videoLoadError: 'Erro ao carregar o vídeo. A conexão pode estar instável.',
   },
   home: {
     title: 'Baixe e Corte seus Vídeos',

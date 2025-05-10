@@ -7,6 +7,8 @@ export default {
     processing: 'Processing...',
     error: 'An error occurred',
     success: 'Success',
+    retry: 'Retry',
+    videoLoadError: 'Error loading video. The connection might be unstable.',
   },
   home: {
     title: 'Download and Cut Your Videos',

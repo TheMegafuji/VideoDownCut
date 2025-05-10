@@ -5,6 +5,8 @@ import { useTranslations } from 'next-intl';
 import { VideoInfo, CutOptions } from '@/lib/types';
 import RangeSlider from './RangeSlider';
 import { formatTime, formatTimeForApi } from '@/lib/utils';
+import CustomPlayer from './CustomPlayer';
+// import PlayerStreamingChunks from './PlayerStreamingChunks'; // Uncomment if you want to use the streaming version
 
 // Get backend URL from environment variable or use fallback
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
@@ -400,15 +402,20 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
                   </svg>
                 </div>
               )}
-              <video
-                ref={videoRef}
-                src={videoSrc}
-                className="w-full h-full object-contain max-h-[70vh]"
-                controls
-                onLoadedMetadata={handleVideoLoaded}
+              <CustomPlayer
+                videoId={videoId}
+                backendUrl={BACKEND_URL}
+                onLoaded={handleVideoLoaded}
                 onTimeUpdate={handleTimeUpdate}
-                onLoadedData={handleVideoLoaded}
+                ref={videoRef}
               />
+              {/* Uncomment below and comment out the CustomPlayer above if you want to use the streaming version */}
+              {/* <PlayerStreamingChunks
+                videoId={videoId}
+                backendUrl={BACKEND_URL}
+                onLoaded={handleVideoLoaded}
+                onTimeUpdate={handleTimeUpdate}
+              /> */}
             </div>
 
             <form onSubmit={handleSubmit}>
