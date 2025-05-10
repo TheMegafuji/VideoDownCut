@@ -6,6 +6,7 @@ import { VideoInfo, CutOptions } from '@/lib/types';
 import RangeSlider from './RangeSlider';
 import { formatTime, formatTimeForApi } from '@/lib/utils';
 import CustomPlayer from './CustomPlayer';
+import DirectUrlPlayer from './DirectUrlPlayer';
 // import PlayerStreamingChunks from './PlayerStreamingChunks'; // Uncomment if you want to use the streaming version
 
 // Get backend URL from environment variable or use fallback
@@ -296,11 +297,10 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
               </div>
             ) : (
               <div className="aspect-w-16 aspect-h-9 bg-black rounded-lg overflow-hidden mb-4">
-                <video
-                  className="w-full h-full object-contain max-h-[70vh]"
-                  src={processedVideoUrl}
-                  controls
-                  autoPlay
+                <DirectUrlPlayer
+                  url={processedVideoUrl}
+                  onLoaded={() => {}}
+                  onTimeUpdate={() => {}}
                 />
               </div>
             )}
