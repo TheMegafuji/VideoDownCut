@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { locales } from '@/config';
 import { Providers } from './providers';
 import Footer from '@/components/Footer';
-import { homeMetadata } from '@/lib/seo';
+import Script from 'next/script';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -117,6 +117,19 @@ export default async function RootLayout({
         ))}
         <link rel="alternate" hrefLang="x-default" href="https://www.videodowncut.com" />
         <meta name="theme-color" content="#3B82F6" />
+        {/* Google Analytics */}
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-M3C5893DN4"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-M3C5893DN4');
+          `}
+        </Script>
       </head>
       <body className={`${inter.className} h-full`}>
         <Providers locale={locale} messages={messages}>
