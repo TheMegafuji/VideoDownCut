@@ -1,15 +1,9 @@
 'use client';
 
-import { Metadata } from 'next';
-import { privacyMetadata } from '@/lib/seo';
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-
-export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
-  return privacyMetadata(params.locale);
-}
 
 export default function PrivacyPage() {
   const t = useTranslations();
