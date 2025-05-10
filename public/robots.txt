@@ -1,0 +1,9 @@
+# Robots politics for VideoDownCut
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://www.videodowncut.com/sitemap.xml
+
+Disallow: /temp/
+Disallow: /api/ 

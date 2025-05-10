@@ -15,7 +15,7 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:300
 interface CutControlsProps {
   videoInfo: VideoInfo;
   filePath: string;
-  onCutComplete: (downloadUrl: string, outputType?: 'video' | 'audio') => void;
+  onCutComplete: (_downloadUrl: string, _outputType?: 'video' | 'audio') => void;
 }
 
 export default function CutControls({ videoInfo, filePath, onCutComplete }: CutControlsProps) {
@@ -217,7 +217,7 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
     typeof filePath === 'string' ? filePath.split('/').pop()?.split('.')[0] || filePath : filePath;
 
   // Use only the videoId for stream as recommended
-  const videoSrc = `${BACKEND_URL}/api/videos/stream/${encodeURIComponent(videoId)}`;
+  // const videoSrc = `${BACKEND_URL}/api/videos/stream/${encodeURIComponent(videoId)}`;
 
   // If not mounted yet, return an empty div with similar structure
   if (!mounted) {

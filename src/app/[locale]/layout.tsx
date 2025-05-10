@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { locales } from '@/config';
 import { Providers } from './providers';
 import Footer from '@/components/Footer';
+import { homeMetadata } from '@/lib/seo';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -15,9 +16,61 @@ export function generateStaticParams() {
   return locales.map((locale) => ({ locale }));
 }
 
+// Default metadata (will be overridden by page-specific metadata)
 export const metadata: Metadata = {
-  title: 'VideoDownCut - Video Downloader & Cutter',
-  description: 'Download videos from any website and optionally cut them to your needs',
+  title: 'VideoDownCut - Download & Corte de Vídeos Online Gratuito',
+  description:
+    'Ferramenta online gratuita para baixar vídeos do YouTube, Vimeo, Twitter e diversos sites, além de cortar trechos e converter para MP3.',
+  keywords:
+    'download de vídeo, cortar vídeo, converter vídeo, youtube downloader, mp3 extractor, editor de vídeo online',
+  metadataBase: new URL('https://www.videodowncut.com'),
+  alternates: {
+    canonical: '/',
+    languages: {
+      en: '/en',
+      pt: '/pt',
+    },
+  },
+  openGraph: {
+    title: 'VideoDownCut - Download & Corte de Vídeos Online Gratuito',
+    description:
+      'Ferramenta online gratuita para baixar vídeos do YouTube, Vimeo, Twitter e diversos sites, além de cortar trechos e converter para MP3.',
+    url: 'https://www.videodowncut.com',
+    siteName: 'VideoDownCut',
+    images: [
+      {
+        url: 'https://www.videodowncut.com/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'VideoDownCut - Download e corte de vídeos',
+      },
+    ],
+    locale: 'pt_BR',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'VideoDownCut - Download & Corte de Vídeos Online Gratuito',
+    description:
+      'Ferramenta online gratuita para baixar vídeos do YouTube, Vimeo, Twitter e diversos sites, além de cortar trechos e converter para MP3.',
+    images: ['https://www.videodowncut.com/twitter-image.jpg'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  verification: {
+    google: 'google-site-verification-code',
+    yandex: 'yandex-verification-code',
+    other: { 'msvalidate.01': 'bing-verification-code' },
+  },
 };
 
 export default async function RootLayout({
@@ -37,8 +90,34 @@ export default async function RootLayout({
     notFound();
   }
 
+  // Changing metadata based on locale
+  const localizedTitle =
+    locale === 'en'
+      ? 'VideoDownCut - Free Video Downloader & Cutter'
+      : 'VideoDownCut - Download & Corte de Vídeos Online Gratuito';
+
+  const localizedDescription =
+    locale === 'en'
+      ? 'Free online tool to download videos from YouTube, Vimeo, Twitter and many websites, plus cut sections and convert to MP3.'
+      : 'Ferramenta online gratuita para baixar vídeos do YouTube, Vimeo, Twitter e diversos sites, além de cortar trechos e converter para MP3.';
+
+  // Dynamic metadata based on locale
+
   return (
     <html lang={locale} className="h-full">
+      <head>
+        <link rel="canonical" href={`https://www.videodowncut.com/${locale}`} />
+        {locales.map((loc) => (
+          <link
+            key={loc}
+            rel="alternate"
+            hrefLang={loc}
+            href={`https://www.videodowncut.com/${loc}`}
+          />
+        ))}
+        <link rel="alternate" hrefLang="x-default" href="https://www.videodowncut.com" />
+        <meta name="theme-color" content="#3B82F6" />
+      </head>
       <body className={`${inter.className} h-full`}>
         <Providers locale={locale} messages={messages}>
           <div className="flex flex-col min-h-screen bg-gradient-to-b from-gray-50 to-gray-100">
@@ -78,6 +157,26 @@ export default async function RootLayout({
             <Footer locale={locale} />
           </div>
         </Providers>
+        {/* Add structured data script for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'WebApplication',
+              name: 'VideoDownCut',
+              url: 'https://www.videodowncut.com',
+              applicationCategory: 'MultimediaApplication',
+              operatingSystem: 'Web',
+              offers: {
+                '@type': 'Offer',
+                price: '0',
+                priceCurrency: 'USD',
+              },
+              description: localizedDescription,
+            }),
+          }}
+        />
       </body>
     </html>
   );

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  <!-- Home page for PT -->
+  <url>
+    <loc>https://www.videodowncut.com/pt</loc>
+    <lastmod>2023-08-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.videodowncut.com/en" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.videodowncut.com/pt" />
+  </url>
+  
+  <!-- Home page for EN -->
+  <url>
+    <loc>https://www.videodowncut.com/en</loc>
+    <lastmod>2023-08-01</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.videodowncut.com/en" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.videodowncut.com/pt" />
+  </url>
+  
+  <!-- Terms of Use for PT -->
+  <url>
+    <loc>https://www.videodowncut.com/pt/terms</loc>
+    <lastmod>2023-08-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.videodowncut.com/en/terms" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.videodowncut.com/pt/terms" />
+  </url>
+  
+  <!-- Terms of Use for EN -->
+  <url>
+    <loc>https://www.videodowncut.com/en/terms</loc>
+    <lastmod>2023-08-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.videodowncut.com/en/terms" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.videodowncut.com/pt/terms" />
+  </url>
+  
+  <!-- Privacy Policy for PT -->
+  <url>
+    <loc>https://www.videodowncut.com/pt/privacy</loc>
+    <lastmod>2023-08-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.videodowncut.com/en/privacy" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.videodowncut.com/pt/privacy" />
+  </url>
+  
+  <!-- Privacy Policy for EN -->
+  <url>
+    <loc>https://www.videodowncut.com/en/privacy</loc>
+    <lastmod>2023-08-01</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.5</priority>
+    <xhtml:link rel="alternate" hreflang="en" href="https://www.videodowncut.com/en/privacy" />
+    <xhtml:link rel="alternate" hreflang="pt" href="https://www.videodowncut.com/pt/privacy" />
+  </url>
+</urlset> 

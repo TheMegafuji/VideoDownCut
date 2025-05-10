@@ -37,7 +37,6 @@ const DirectUrlPlayer = forwardRef<HTMLVideoElement, DirectUrlPlayerProps>(
       if (!url) return;
 
       const controller = new AbortController();
-      const signal = controller.signal;
 
       const loadVideo = async () => {
         try {
@@ -93,7 +92,7 @@ const DirectUrlPlayer = forwardRef<HTMLVideoElement, DirectUrlPlayerProps>(
           URL.revokeObjectURL(videoUrl);
         }
       };
-    }, [url, retryCount]);
+    }, [url, videoUrl, retryCount]);
 
     const handleRetry = () => {
       if (retryCount < maxRetries) {

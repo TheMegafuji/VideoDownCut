@@ -1,4 +1,11 @@
-'use client';
+import { Metadata } from 'next';
+import { privacyMetadata } from '@/lib/seo';
+
+export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
+  return privacyMetadata(params.locale);
+}
+
+('use client');
 
 import { useTranslations } from 'next-intl';
 import Link from 'next/link';
