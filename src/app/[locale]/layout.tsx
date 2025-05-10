@@ -18,11 +18,11 @@ export function generateStaticParams() {
 
 // Default metadata (will be overridden by page-specific metadata)
 export const metadata: Metadata = {
-  title: 'VideoDownCut - Download & Corte de Vídeos Online Gratuito',
+  title: 'VideoDownCut - Free Video Downloader & Cutter',
   description:
-    'Ferramenta online gratuita para baixar vídeos do YouTube, Vimeo, Twitter e diversos sites, além de cortar trechos e converter para MP3.',
+    'Free online tool to download videos from YouTube, Instagram, Twitter and many websites, plus cut sections and convert to MP3.',
   keywords:
-    'download de vídeo, cortar vídeo, converter vídeo, youtube downloader, mp3 extractor, editor de vídeo online',
+    'video downloader, video cutter, mp3 converter, youtube downloader, online video editor',
   metadataBase: new URL('https://www.videodowncut.com'),
   alternates: {
     canonical: '/',
@@ -32,9 +32,9 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: 'VideoDownCut - Download & Corte de Vídeos Online Gratuito',
+    title: 'VideoDownCut - Free Video Downloader & Cutter',
     description:
-      'Ferramenta online gratuita para baixar vídeos do YouTube, Vimeo, Twitter e diversos sites, além de cortar trechos e converter para MP3.',
+      'Free online tool to download videos from YouTube, Instagram, Twitter and many websites, plus cut sections and convert to MP3.',
     url: 'https://www.videodowncut.com',
     siteName: 'VideoDownCut',
     images: [
@@ -42,17 +42,17 @@ export const metadata: Metadata = {
         url: 'https://www.videodowncut.com/og-image.jpg',
         width: 1200,
         height: 630,
-        alt: 'VideoDownCut - Download e corte de vídeos',
+        alt: 'VideoDownCut - Video Downloader and Cutter',
       },
     ],
-    locale: 'pt_BR',
+    locale: 'en_US',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'VideoDownCut - Download & Corte de Vídeos Online Gratuito',
+    title: 'VideoDownCut - Free Video Downloader & Cutter',
     description:
-      'Ferramenta online gratuita para baixar vídeos do YouTube, Vimeo, Twitter e diversos sites, além de cortar trechos e converter para MP3.',
+      'Free online tool to download videos from YouTube, Instagram, Twitter and many websites, plus cut sections and convert to MP3.',
     images: ['https://www.videodowncut.com/twitter-image.jpg'],
   },
   robots: {
@@ -90,18 +90,9 @@ export default async function RootLayout({
     notFound();
   }
 
-  // Changing metadata based on locale
-  const localizedTitle =
-    locale === 'en'
-      ? 'VideoDownCut - Free Video Downloader & Cutter'
-      : 'VideoDownCut - Download & Corte de Vídeos Online Gratuito';
-
-  const localizedDescription =
-    locale === 'en'
-      ? 'Free online tool to download videos from YouTube, Vimeo, Twitter and many websites, plus cut sections and convert to MP3.'
-      : 'Ferramenta online gratuita para baixar vídeos do YouTube, Vimeo, Twitter e diversos sites, além de cortar trechos e converter para MP3.';
-
-  // Dynamic metadata based on locale
+  // English description for structured data
+  const description =
+    'Free online tool to download videos from YouTube, Instagram, Twitter and many websites, plus cut sections and convert to MP3.';
 
   return (
     <html lang={locale} className="h-full">
@@ -186,7 +177,7 @@ export default async function RootLayout({
                 price: '0',
                 priceCurrency: 'USD',
               },
-              description: localizedDescription,
+              description: description,
             }),
           }}
         />
