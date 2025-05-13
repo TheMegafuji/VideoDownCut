@@ -123,7 +123,7 @@ Contributions are welcome! Feel free to open issues or pull requests.
 
 <div align="center">
   
-  Developed with ❤️ by [Your Name](https://github.com/TheMegafuji)
+  Developed with ❤️ by [Megafuji](https://github.com/TheMegafuji)
   
   ⭐ Like this project? [Give it a star on GitHub](https://github.com/TheMegafuji/VideoDownCut)
 </div> 
