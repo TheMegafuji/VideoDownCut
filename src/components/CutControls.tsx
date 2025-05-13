@@ -112,6 +112,7 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
+              'ngrok-skip-browser-warning': 'true',
             },
           }
         );
@@ -121,6 +122,7 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            'ngrok-skip-browser-warning': 'true',
           },
           body: JSON.stringify({
             cutOptions,
@@ -162,6 +164,7 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
         const link = document.createElement('a');
         link.href = fullDownloadUrl;
         link.download = data.data.outputPath.split('/').pop() || 'audio.mp3';
+        link.setAttribute('ngrok-skip-browser-warning', 'true');
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -312,6 +315,7 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
                   download={processedFileName}
                   target="_blank"
                   rel="noopener noreferrer"
+                  data-ngrok-skip-browser-warning="true"
                   className="py-2 px-4 bg-green-600 hover:bg-green-700 focus:ring-green-500 focus:ring-offset-green-200 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg flex items-center"
                 >
                   <svg
@@ -344,6 +348,7 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
                     download={processedFileName}
                     target="_blank"
                     rel="noopener noreferrer"
+                    data-ngrok-skip-browser-warning="true"
                     className="py-2 px-4 bg-green-600 hover:bg-green-700 focus:ring-green-500 focus:ring-offset-green-200 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg flex items-center"
                   >
                     <svg
@@ -505,6 +510,7 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
                   <a
                     href={`${BACKEND_URL}/api/videos/download/${videoId}`}
                     download
+                    data-ngrok-skip-browser-warning="true"
                     className="flex items-center py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
                     <svg
