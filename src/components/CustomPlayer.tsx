@@ -22,6 +22,10 @@ const CustomPlayer = forwardRef<HTMLVideoElement, CustomPlayerProps>(
     const [retryCount, setRetryCount] = useState(0);
     const maxRetries = 2;
 
+    // Estados para streaming direto
+    const [streamingFailed, setStreamingFailed] = useState(false);
+    const [streamingUrl, setStreamingUrl] = useState<string | null>(null);
+
     // Forward the internal ref to the parent component
     useImperativeHandle(ref, () => internalVideoRef.current as HTMLVideoElement);
 
@@ -32,6 +36,14 @@ const CustomPlayer = forwardRef<HTMLVideoElement, CustomPlayerProps>(
       isMounted.current = true;
       return () => {
         isMounted.current = false;
+
+        // Limpar URLs de blob quando o componente é desmontado
+        if (videoUrl) {
+          URL.revokeObjectURL(videoUrl);
+        }
+        if (streamingUrl) {
+          URL.revokeObjectURL(streamingUrl);
+        }
       };
     }, []);
 
@@ -121,16 +133,66 @@ const CustomPlayer = forwardRef<HTMLVideoElement, CustomPlayerProps>(
       }
     };
 
-    // Renderiza o PlayerStreamingChunks quando useStreamingMode estiver ativado
+    // Efeito para fallback do streaming direto
+    useEffect(() => {
+      if (!useStreamingMode || !streamingFailed) return;
+
+      // Se o streaming direto falhar, tenta carregar o vídeo completo
+      const loadFullVideo = async () => {
+        try {
+          console.log('Direct streaming failed, trying to load full video');
+          // Adiciona um timestamp para evitar caching
+          const timestamp = new Date().getTime();
+          const url = `${backendUrl}/api/videos/stream/${encodeURIComponent(videoId)}?t=${timestamp}`;
+
+          const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+              Range: 'bytes=0-',
+              Accept: 'video/mp4,video/*;q=0.9,*/*;q=0.8',
+              'Cache-Control': 'no-cache',
+              Pragma: 'no-cache',
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`Error fetching video: ${response.status} ${response.statusText}`);
+          }
+
+          // Converte a resposta para blob e cria uma URL
+          const blob = await response.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          setStreamingUrl(blobUrl);
+        } catch (err) {
+          console.error('Full video loading also failed:', err);
+        }
+      };
+
+      loadFullVideo();
+    }, [streamingFailed, backendUrl, videoId, useStreamingMode]);
+
+    // Renderiza o vídeo com streaming direto quando useStreamingMode estiver ativado
     if (useStreamingMode) {
+      const streamUrl = `${backendUrl}/api/videos/stream/${encodeURIComponent(videoId)}`;
+
       return (
-        <PlayerStreamingChunks
-          videoId={videoId}
-          backendUrl={backendUrl}
-          onLoaded={onLoaded}
-          onTimeUpdate={onTimeUpdate}
-          ref={ref}
-        />
+        <div className="video-container">
+          <video
+            ref={ref as React.RefObject<HTMLVideoElement>}
+            src={streamingUrl || streamUrl}
+            className="w-full h-full object-contain max-h-[70vh]"
+            controls
+            onLoadedMetadata={onLoaded}
+            onTimeUpdate={onTimeUpdate}
+            onError={(e) => {
+              console.error('Video streaming error:', e);
+              // Ativar fallback quando o streaming direto falhar
+              setStreamingFailed(true);
+            }}
+            crossOrigin="anonymous"
+            playsInline
+          />
+        </div>
       );
     }
 

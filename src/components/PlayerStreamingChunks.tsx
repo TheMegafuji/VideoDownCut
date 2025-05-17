@@ -37,9 +37,62 @@ const PlayerStreamingChunks = forwardRef<HTMLVideoElement, PlayerStreamingChunks
       if (!videoId || !internalVideoRef.current) return;
 
       const controller = new AbortController();
+      // Flag para evitar chamadas recursivas do fallback
+      let fallbackAttempted = false;
 
       // Streaming endpoint URL
       const url = `${backendUrl}/api/videos/stream/${videoId}`;
+
+      let useFallbackMethod = false;
+
+      const loadFullVideoFallback = async () => {
+        if (fallbackAttempted) return;
+        fallbackAttempted = true;
+
+        try {
+          if (!isMounted.current) return;
+          console.log('Trying fallback method: loading full video');
+          setLoading(true);
+          setError(null);
+
+          const fallbackController = new AbortController();
+
+          const timestamp = new Date().getTime();
+          const urlWithTimestamp = `${url}?t=${timestamp}`;
+
+          const response = await fetch(urlWithTimestamp, {
+            method: 'GET',
+            headers: {
+              Range: 'bytes=0-',
+              Accept: 'video/mp4,video/*;q=0.9,*/*;q=0.8',
+              'Cache-Control': 'no-cache',
+              Pragma: 'no-cache',
+            },
+            signal: fallbackController.signal,
+          });
+
+          if (!response.ok) {
+            throw new Error(`Error fetching video: ${response.status} ${response.statusText}`);
+          }
+
+          const blob = await response.blob();
+          const blobUrl = URL.createObjectURL(blob);
+
+          if (isMounted.current && internalVideoRef.current) {
+            internalVideoRef.current.src = blobUrl;
+            setLoading(false);
+            if (onLoaded) {
+              onLoaded();
+            }
+          }
+        } catch (err) {
+          console.error('Fallback method also failed:', err);
+          if (isMounted.current) {
+            setError(err instanceof Error ? err.message : 'All playback methods failed');
+            setLoading(false);
+          }
+        }
+      };
 
       const setupMediaSource = async () => {
         try {
@@ -52,183 +105,227 @@ const PlayerStreamingChunks = forwardRef<HTMLVideoElement, PlayerStreamingChunks
           mediaSource.addEventListener('sourceopen', async () => {
             try {
               // Fetch video information (like content type)
-              const headResponse = await fetch(url, {
-                method: 'HEAD',
-                headers: {
-                  'Cache-Control': 'no-cache',
-                  Pragma: 'no-cache',
-                },
-                signal: controller.signal,
-              });
+              try {
+                const headResponse = await fetch(url, {
+                  method: 'HEAD',
+                  headers: {
+                    'Cache-Control': 'no-cache',
+                    Pragma: 'no-cache',
+                  },
+                  signal: controller.signal,
+                });
 
-              const contentType = headResponse.headers.get('Content-Type') || 'video/mp4';
-              const contentLength = parseInt(headResponse.headers.get('Content-Length') || '0', 10);
+                let contentType = 'video/mp4; codecs="avc1.42E01E, mp4a.40.2"';
+                let contentLength = 0;
 
-              if (!contentLength) {
-                throw new Error('Content length not available');
-              }
-
-              // Create a buffer for the video
-              const sourceBuffer = mediaSource.addSourceBuffer(contentType);
-              let sourceBufferReady = true;
-
-              // Define the size of each chunk - using a larger chunk size to reduce requests
-              const CHUNK_SIZE = 2 * 1024 * 1024; // 2MB per chunk instead of 1MB
-              let position = 0;
-
-              // Function to download a chunk of the video
-              const fetchChunk = async (start: number, end: number) => {
-                if (!isMounted.current) return null;
-                try {
-                  const response = await fetch(url, {
-                    headers: {
-                      Range: `bytes=${start}-${end}`,
-                      'Cache-Control': 'no-cache',
-                      Pragma: 'no-cache',
-                      Accept: 'video/mp4,video/*;q=0.9,*/*;q=0.8',
-                    },
-                    signal: controller.signal,
-                  });
-
-                  if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                if (headResponse.ok) {
+                  const headerContentType = headResponse.headers.get('Content-Type');
+                  if (headerContentType && headerContentType.startsWith('video/')) {
+                    contentType = headerContentType;
                   }
-
-                  return await response.arrayBuffer();
-                } catch (err: any) {
-                  if (err.name === 'AbortError') {
-                    console.log('Fetch aborted');
-                    return null;
-                  }
-                  console.error('Error fetching chunk:', err);
-                  throw err;
+                  contentLength = parseInt(headResponse.headers.get('Content-Length') || '0', 10);
+                } else {
+                  console.warn(
+                    'HEAD request failed, using fallback content type and estimated size'
+                  );
+                  contentLength = 10 * 1024 * 1024;
                 }
-              };
 
-              // Wait until the buffer is ready to receive new data
-              const waitForSourceBuffer = () => {
-                return new Promise<void>((resolve) => {
-                  if (sourceBufferReady) {
-                    sourceBufferReady = false;
-                    resolve();
-                  } else {
-                    const checkReady = () => {
+                if (!contentLength) {
+                  throw new Error('Content length not available or zero');
+                }
+
+                try {
+                  // Create a buffer for the video
+                  const sourceBuffer = mediaSource.addSourceBuffer(contentType);
+                  let sourceBufferReady = true;
+
+                  // Define the size of each chunk - using a larger chunk size to reduce requests
+                  const CHUNK_SIZE = 2 * 1024 * 1024; // 2MB per chunk instead of 1MB
+                  let position = 0;
+
+                  // Function to download a chunk of the video
+                  const fetchChunk = async (start: number, end: number) => {
+                    if (!isMounted.current) return null;
+                    try {
+                      const response = await fetch(url, {
+                        headers: {
+                          Range: `bytes=${start}-${end}`,
+                          'Cache-Control': 'no-cache',
+                          Pragma: 'no-cache',
+                          Accept: 'video/mp4,video/*;q=0.9,*/*;q=0.8',
+                        },
+                        signal: controller.signal,
+                      });
+
+                      if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                      }
+
+                      return await response.arrayBuffer();
+                    } catch (err: any) {
+                      if (err.name === 'AbortError') {
+                        console.log('Fetch aborted');
+                        return null;
+                      }
+                      console.error('Error fetching chunk:', err);
+                      throw err;
+                    }
+                  };
+
+                  // Wait until the buffer is ready to receive new data
+                  const waitForSourceBuffer = () => {
+                    return new Promise<void>((resolve) => {
                       if (sourceBufferReady) {
                         sourceBufferReady = false;
                         resolve();
                       } else {
+                        const checkReady = () => {
+                          if (sourceBufferReady) {
+                            sourceBufferReady = false;
+                            resolve();
+                          } else {
+                            setTimeout(checkReady, 50);
+                          }
+                        };
                         setTimeout(checkReady, 50);
                       }
-                    };
-                    setTimeout(checkReady, 50);
-                  }
-                });
-              };
-
-              // Function to fetch all chunks
-              const fetchChunks = async () => {
-                if (!isMounted.current) return;
-
-                try {
-                  // Load only first few chunks to start playback quickly
-                  const initialChunks = Math.min(3, Math.ceil(contentLength / CHUNK_SIZE));
-                  let loadedChunks = 0;
-
-                  // Load initial segments
-                  while (position < initialChunks * CHUNK_SIZE && position < contentLength) {
-                    const end = Math.min(position + CHUNK_SIZE - 1, contentLength - 1);
-                    const data = await fetchChunk(position, end);
-
-                    if (!data || !isMounted.current) return;
-
-                    await waitForSourceBuffer();
-                    sourceBuffer.appendBuffer(data);
-
-                    // Update progress
-                    const newProgress = Math.round((end / contentLength) * 100);
-                    setProgress(newProgress);
-
-                    // Signal buffer ready for more
-                    await new Promise<void>((resolve) => {
-                      const updateEndHandler = () => {
-                        sourceBufferReady = true;
-                        sourceBuffer.removeEventListener('updateend', updateEndHandler);
-                        resolve();
-                      };
-                      sourceBuffer.addEventListener('updateend', updateEndHandler);
                     });
+                  };
 
-                    position = end + 1;
-                    loadedChunks++;
+                  // Function to fetch all chunks
+                  const fetchChunks = async () => {
+                    if (!isMounted.current) return;
 
-                    // Start playback after the first chunk
-                    if (loadedChunks === 1 && isMounted.current) {
-                      setLoading(false);
-                      if (onLoaded && internalVideoRef.current) {
-                        onLoaded();
+                    try {
+                      // Load only first few chunks to start playback quickly
+                      const initialChunks = Math.min(3, Math.ceil(contentLength / CHUNK_SIZE));
+                      let loadedChunks = 0;
+
+                      // Load initial segments
+                      while (position < initialChunks * CHUNK_SIZE && position < contentLength) {
+                        const end = Math.min(position + CHUNK_SIZE - 1, contentLength - 1);
+                        const data = await fetchChunk(position, end);
+
+                        if (!data || !isMounted.current) return;
+
+                        await waitForSourceBuffer();
+                        sourceBuffer.appendBuffer(data);
+
+                        // Update progress
+                        const newProgress = Math.round((end / contentLength) * 100);
+                        setProgress(newProgress);
+
+                        // Signal buffer ready for more
+                        await new Promise<void>((resolve) => {
+                          const updateEndHandler = () => {
+                            sourceBufferReady = true;
+                            sourceBuffer.removeEventListener('updateend', updateEndHandler);
+                            resolve();
+                          };
+                          sourceBuffer.addEventListener('updateend', updateEndHandler);
+                        });
+
+                        position = end + 1;
+                        loadedChunks++;
+
+                        // Start playback after the first chunk
+                        if (loadedChunks === 1 && isMounted.current) {
+                          setLoading(false);
+                          if (onLoaded && internalVideoRef.current) {
+                            onLoaded();
+                          }
+                        }
+                      }
+
+                      // After initial chunks are loaded, start playback and load the rest
+                      if (isMounted.current) {
+                        setLoading(false);
+                        if (onLoaded && internalVideoRef.current) {
+                          onLoaded();
+                        }
+
+                        // Load remaining chunks in the background
+                        while (position < contentLength && isMounted.current) {
+                          const end = Math.min(position + CHUNK_SIZE - 1, contentLength - 1);
+                          const data = await fetchChunk(position, end);
+
+                          if (!data || !isMounted.current) return;
+
+                          await waitForSourceBuffer();
+                          sourceBuffer.appendBuffer(data);
+
+                          // Update progress
+                          const newProgress = Math.round((end / contentLength) * 100);
+                          setProgress(newProgress);
+
+                          // Signal buffer ready for more
+                          await new Promise<void>((resolve) => {
+                            const updateEndHandler = () => {
+                              sourceBufferReady = true;
+                              sourceBuffer.removeEventListener('updateend', updateEndHandler);
+                              resolve();
+                            };
+                            sourceBuffer.addEventListener('updateend', updateEndHandler);
+                          });
+
+                          position = end + 1;
+                        }
+
+                        // When all chunks have been loaded
+                        if (isMounted.current) {
+                          mediaSource.endOfStream();
+                        }
+                      }
+                    } catch (err) {
+                      if (isMounted.current) {
+                        const errorMessage =
+                          err instanceof Error ? err.message : 'Unknown error loading chunks';
+                        console.error('Error loading chunks:', err);
+                        setError(errorMessage);
+                        setLoading(false);
                       }
                     }
-                  }
+                  };
 
-                  // After initial chunks are loaded, start playback and load the rest
-                  if (isMounted.current) {
-                    setLoading(false);
-                    if (onLoaded && internalVideoRef.current) {
-                      onLoaded();
-                    }
-
-                    // Load remaining chunks in the background
-                    while (position < contentLength && isMounted.current) {
-                      const end = Math.min(position + CHUNK_SIZE - 1, contentLength - 1);
-                      const data = await fetchChunk(position, end);
-
-                      if (!data || !isMounted.current) return;
-
-                      await waitForSourceBuffer();
-                      sourceBuffer.appendBuffer(data);
-
-                      // Update progress
-                      const newProgress = Math.round((end / contentLength) * 100);
-                      setProgress(newProgress);
-
-                      // Signal buffer ready for more
-                      await new Promise<void>((resolve) => {
-                        const updateEndHandler = () => {
-                          sourceBufferReady = true;
-                          sourceBuffer.removeEventListener('updateend', updateEndHandler);
-                          resolve();
-                        };
-                        sourceBuffer.addEventListener('updateend', updateEndHandler);
-                      });
-
-                      position = end + 1;
-                    }
-
-                    // When all chunks have been loaded
-                    if (isMounted.current) {
-                      mediaSource.endOfStream();
-                    }
-                  }
+                  // Start downloading chunks
+                  fetchChunks();
                 } catch (err) {
                   if (isMounted.current) {
                     const errorMessage =
-                      err instanceof Error ? err.message : 'Unknown error loading chunks';
-                    console.error('Error loading chunks:', err);
+                      err instanceof Error ? err.message : 'Unknown error during streaming setup';
+                    console.error('Error during streaming setup:', err);
                     setError(errorMessage);
                     setLoading(false);
+                    useFallbackMethod = true;
+                    loadFullVideoFallback();
                   }
                 }
-              };
+              } catch (err) {
+                if (isMounted.current) {
+                  const errorMessage =
+                    err instanceof Error ? err.message : 'Unknown error during streaming setup';
+                  console.error('Error during streaming setup:', err);
+                  setError(errorMessage);
+                  setLoading(false);
+                  useFallbackMethod = true;
+                  loadFullVideoFallback();
+                }
+              }
 
-              // Start downloading chunks
-              fetchChunks();
+              const videoUrl = URL.createObjectURL(mediaSource);
+              if (internalVideoRef.current) {
+                internalVideoRef.current.src = videoUrl;
+              }
             } catch (err) {
               if (isMounted.current) {
                 const errorMessage =
-                  err instanceof Error ? err.message : 'Unknown error during streaming setup';
-                console.error('Error during streaming setup:', err);
+                  err instanceof Error ? err.message : 'Unknown error creating media source';
+                console.error('Error creating media source:', err);
                 setError(errorMessage);
                 setLoading(false);
+                useFallbackMethod = true;
+                loadFullVideoFallback();
               }
             }
           });

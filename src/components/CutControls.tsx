@@ -6,8 +6,6 @@ import { VideoInfo, CutOptions } from '@/lib/types';
 import RangeSlider from './RangeSlider';
 import { formatTime, formatTimeForApi } from '@/lib/utils';
 import CustomPlayer from './CustomPlayer';
-import DirectUrlPlayer from './DirectUrlPlayer';
-import PlayerStreamingChunks from './PlayerStreamingChunks'; // Uncomment if you want to use the streaming version
 
 // Get backend URL from environment variable or use fallback
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
@@ -36,29 +34,6 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
   const [processedVideoUrl, setProcessedVideoUrl] = useState<string | null>(null);
   const [processedDownloadUrl, setProcessedDownloadUrl] = useState<string | null>(null);
   const [processedFileName, setProcessedFileName] = useState<string | null>(null);
-
-  // Extract video ID from the stream URL
-  const extractVideoIdFromUrl = (url: string): string => {
-    // If URL ends with a format extension (like .mp4), remove it
-    const lastPart = url.split('/').pop() || '';
-    const idWithoutExt = lastPart.split('.')[0];
-
-    // If we have a valid-looking ID, return it
-    if (idWithoutExt && idWithoutExt.length > 0) {
-      return idWithoutExt;
-    }
-
-    // Try to extract from the path
-    const matches = url.match(/\/api\/videos\/stream\/([^/?&]+)/);
-    if (matches && matches[1]) {
-      return matches[1];
-    }
-
-    // Fallback - just use the videoId from original file
-    return typeof filePath === 'string'
-      ? filePath.split('/').pop()?.split('.')[0] || 'video'
-      : 'video';
-  };
 
   // Mount component on client side only
   useEffect(() => {
@@ -320,11 +295,22 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
               </div>
             ) : (
               <div className="aspect-w-16 aspect-h-9 bg-black rounded-lg overflow-hidden mb-4">
-                <PlayerStreamingChunks
-                  videoId={extractVideoIdFromUrl(processedVideoUrl || '')}
-                  backendUrl={BACKEND_URL}
-                  onLoaded={() => {}}
-                  onTimeUpdate={() => {}}
+                <video
+                  src={processedVideoUrl || ''}
+                  className="w-full h-full object-contain max-h-[70vh]"
+                  controls
+                  autoPlay
+                  playsInline
+                  crossOrigin="anonymous"
+                  onError={(e) => {
+                    console.error('Error playing processed video:', e);
+                    const videoElement = e.currentTarget as HTMLVideoElement;
+                    setTimeout(() => {
+                      if (videoElement) {
+                        videoElement.load();
+                      }
+                    }, 1000);
+                  }}
                 />
               </div>
             )}
