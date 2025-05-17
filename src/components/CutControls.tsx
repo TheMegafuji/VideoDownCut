@@ -7,7 +7,7 @@ import RangeSlider from './RangeSlider';
 import { formatTime, formatTimeForApi } from '@/lib/utils';
 import CustomPlayer from './CustomPlayer';
 import DirectUrlPlayer from './DirectUrlPlayer';
-// import PlayerStreamingChunks from './PlayerStreamingChunks'; // Uncomment if you want to use the streaming version
+import PlayerStreamingChunks from './PlayerStreamingChunks'; // Uncomment if you want to use the streaming version
 
 // Get backend URL from environment variable or use fallback
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
@@ -36,6 +36,29 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
   const [processedVideoUrl, setProcessedVideoUrl] = useState<string | null>(null);
   const [processedDownloadUrl, setProcessedDownloadUrl] = useState<string | null>(null);
   const [processedFileName, setProcessedFileName] = useState<string | null>(null);
+
+  // Extract video ID from the stream URL
+  const extractVideoIdFromUrl = (url: string): string => {
+    // If URL ends with a format extension (like .mp4), remove it
+    const lastPart = url.split('/').pop() || '';
+    const idWithoutExt = lastPart.split('.')[0];
+
+    // If we have a valid-looking ID, return it
+    if (idWithoutExt && idWithoutExt.length > 0) {
+      return idWithoutExt;
+    }
+
+    // Try to extract from the path
+    const matches = url.match(/\/api\/videos\/stream\/([^/?&]+)/);
+    if (matches && matches[1]) {
+      return matches[1];
+    }
+
+    // Fallback - just use the videoId from original file
+    return typeof filePath === 'string'
+      ? filePath.split('/').pop()?.split('.')[0] || 'video'
+      : 'video';
+  };
 
   // Mount component on client side only
   useEffect(() => {
@@ -112,7 +135,6 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
             method: 'GET',
             headers: {
               'Content-Type': 'application/json',
-              'ngrok-skip-browser-warning': 'true',
             },
           }
         );
@@ -122,7 +144,6 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'ngrok-skip-browser-warning': 'true',
           },
           body: JSON.stringify({
             cutOptions,
@@ -164,7 +185,6 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
         const link = document.createElement('a');
         link.href = fullDownloadUrl;
         link.download = data.data.outputPath.split('/').pop() || 'audio.mp3';
-        link.setAttribute('ngrok-skip-browser-warning', 'true');
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -300,8 +320,9 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
               </div>
             ) : (
               <div className="aspect-w-16 aspect-h-9 bg-black rounded-lg overflow-hidden mb-4">
-                <DirectUrlPlayer
-                  url={processedVideoUrl}
+                <PlayerStreamingChunks
+                  videoId={extractVideoIdFromUrl(processedVideoUrl || '')}
+                  backendUrl={BACKEND_URL}
                   onLoaded={() => {}}
                   onTimeUpdate={() => {}}
                 />
@@ -315,7 +336,6 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
                   download={processedFileName}
                   target="_blank"
                   rel="noopener noreferrer"
-                  data-ngrok-skip-browser-warning="true"
                   className="py-2 px-4 bg-green-600 hover:bg-green-700 focus:ring-green-500 focus:ring-offset-green-200 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg flex items-center"
                 >
                   <svg
@@ -348,7 +368,6 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
                     download={processedFileName}
                     target="_blank"
                     rel="noopener noreferrer"
-                    data-ngrok-skip-browser-warning="true"
                     className="py-2 px-4 bg-green-600 hover:bg-green-700 focus:ring-green-500 focus:ring-offset-green-200 text-white transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg flex items-center"
                   >
                     <svg
@@ -413,8 +432,9 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
                 onLoaded={handleVideoLoaded}
                 onTimeUpdate={handleTimeUpdate}
                 ref={videoRef}
+                useStreamingMode={true}
               />
-              {/* Uncomment below and comment out the CustomPlayer above if you want to use the streaming version */}
+              {/* Usar o PlayerStreamingChunks para streaming em chunks */}
               {/* <PlayerStreamingChunks
                 videoId={videoId}
                 backendUrl={BACKEND_URL}
@@ -510,7 +530,6 @@ export default function CutControls({ videoInfo, filePath, onCutComplete }: CutC
                   <a
                     href={`${BACKEND_URL}/api/videos/download/${videoId}`}
                     download
-                    data-ngrok-skip-browser-warning="true"
                     className="flex items-center py-2 px-3 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
                     <svg

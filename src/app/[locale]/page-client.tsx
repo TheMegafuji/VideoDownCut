@@ -222,7 +222,6 @@ export default function HomeClient() {
               <a
                 href={downloadStatus.downloadUrl}
                 download
-                data-ngrok-skip-browser-warning="true"
                 className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
               >
                 <svg

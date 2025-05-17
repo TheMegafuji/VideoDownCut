@@ -57,7 +57,6 @@ const PlayerStreamingChunks = forwardRef<HTMLVideoElement, PlayerStreamingChunks
                 headers: {
                   'Cache-Control': 'no-cache',
                   Pragma: 'no-cache',
-                  'ngrok-skip-browser-warning': 'true',
                 },
                 signal: controller.signal,
               });
@@ -87,7 +86,6 @@ const PlayerStreamingChunks = forwardRef<HTMLVideoElement, PlayerStreamingChunks
                       'Cache-Control': 'no-cache',
                       Pragma: 'no-cache',
                       Accept: 'video/mp4,video/*;q=0.9,*/*;q=0.8',
-                      'ngrok-skip-browser-warning': 'true',
                     },
                     signal: controller.signal,
                   });

@@ -52,8 +52,6 @@ const DirectUrlPlayer = forwardRef<HTMLVideoElement, DirectUrlPlayerProps>(
           const response = await fetch(urlWithTimestamp, {
             method: 'GET',
             headers: {
-              // This header bypasses the ngrok warning page
-              'ngrok-skip-browser-warning': 'true',
               // Other important headers
               Range: 'bytes=0-',
               Accept: 'video/mp4,video/*;q=0.9,*/*;q=0.8',

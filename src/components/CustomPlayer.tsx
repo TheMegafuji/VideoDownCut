@@ -2,16 +2,18 @@
 
 import React, { useEffect, useRef, useState, forwardRef, useImperativeHandle } from 'react';
 import { useTranslations } from 'next-intl';
+import PlayerStreamingChunks from './PlayerStreamingChunks';
 
 interface CustomPlayerProps {
   videoId: string;
   backendUrl: string;
   onLoaded?: () => void;
   onTimeUpdate?: () => void;
+  useStreamingMode?: boolean;
 }
 
 const CustomPlayer = forwardRef<HTMLVideoElement, CustomPlayerProps>(
-  ({ videoId, backendUrl, onLoaded, onTimeUpdate }, ref) => {
+  ({ videoId, backendUrl, onLoaded, onTimeUpdate, useStreamingMode = false }, ref) => {
     const t = useTranslations('common');
     const internalVideoRef = useRef<HTMLVideoElement>(null);
     const [videoUrl, setVideoUrl] = useState<string | null>(null);
@@ -35,7 +37,7 @@ const CustomPlayer = forwardRef<HTMLVideoElement, CustomPlayerProps>(
 
     // Use fetch with proper headers and create a blob URL
     useEffect(() => {
-      if (!videoId) return;
+      if (!videoId || useStreamingMode) return; // Não carrega direto se estiver no modo streaming
 
       const controller = new AbortController();
       const signal = controller.signal;
@@ -50,13 +52,11 @@ const CustomPlayer = forwardRef<HTMLVideoElement, CustomPlayerProps>(
           const timestamp = new Date().getTime();
           const url = `${backendUrl}/api/videos/stream/${encodeURIComponent(videoId)}?t=${timestamp}`;
 
-          // Fetch the video with specific headers to bypass ngrok warning
+          // Fetch the video with appropriate headers
           const response = await fetch(url, {
             method: 'GET',
             headers: {
-              // This header bypasses the ngrok warning page
-              'ngrok-skip-browser-warning': 'true',
-              // Other important headers
+              // Important headers for video streaming
               Range: 'bytes=0-',
               Accept: 'video/mp4,video/*;q=0.9,*/*;q=0.8',
               'Cache-Control': 'no-cache',
@@ -94,7 +94,7 @@ const CustomPlayer = forwardRef<HTMLVideoElement, CustomPlayerProps>(
           URL.revokeObjectURL(videoUrl);
         }
       };
-    }, [videoId, backendUrl, retryCount]);
+    }, [videoId, backendUrl, retryCount, useStreamingMode]);
 
     const handleRetry = () => {
       if (retryCount < maxRetries) {
@@ -120,6 +120,19 @@ const CustomPlayer = forwardRef<HTMLVideoElement, CustomPlayerProps>(
         onTimeUpdate();
       }
     };
+
+    // Renderiza o PlayerStreamingChunks quando useStreamingMode estiver ativado
+    if (useStreamingMode) {
+      return (
+        <PlayerStreamingChunks
+          videoId={videoId}
+          backendUrl={backendUrl}
+          onLoaded={onLoaded}
+          onTimeUpdate={onTimeUpdate}
+          ref={ref}
+        />
+      );
+    }
 
     if (loading) {
       return (
